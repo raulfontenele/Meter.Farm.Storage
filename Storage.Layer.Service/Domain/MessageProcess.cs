@@ -5,6 +5,7 @@ using Meter.Farm.DTO;
 using Buffer = Meter.Farm.DTO.Buffer;
 using System.Collections.Generic;
 using Storage.Layer.Service.Interfaces;
+using Meter.Farm.DTO.Repository;
 
 namespace Storage.Layer.Service.Domain
 {
@@ -13,7 +14,7 @@ namespace Storage.Layer.Service.Domain
         private IBuffer _requestBuffer = new Buffer();
 
         #region Request Commands
-        public void AddRequestPackage(ServerPackageObject message)
+        public void AddRequestPackage(StorageCommandObjectRequest message)
         {
             _requestBuffer.AddPackage(message);
         }
@@ -22,7 +23,7 @@ namespace Storage.Layer.Service.Domain
             if(_requestBuffer.Length() <= 0)
                 throw new Exception();
 
-            return (ServerPackageObject)_requestBuffer.GetBuffer()[0];
+            return (StorageCommandObjectRequest)_requestBuffer.GetBuffer()[0];
         }
         public bool IsAvailableRequestPackeage()
         {
@@ -31,6 +32,14 @@ namespace Storage.Layer.Service.Domain
         public void ProcessLastRequestPackage()
         {
             _requestBuffer.Pop();
+        }
+        public void ClearRequestBuffer()
+        {
+            _requestBuffer.ClearBuffer();
+        }
+        public IList<StorageCommandObjectRequest> GetRequestPackageList()
+        {
+            return _requestBuffer.GetBuffer().OfType<StorageCommandObjectRequest>().ToList();
         }
         #endregion
 

@@ -16,59 +16,72 @@ namespace Storage.Layer.Service
         private IDataProcess _messageProcess;
         private const int DELAY_FOR_NEW_RETRY = 1000;
 
-        public Worker(ILogger<Worker> logger, MessageProcess messageProcess, IPublisherService publisher)
+        public Worker(ILogger<Worker> logger, MessageProcess messageProcess, IPublisherService publisher, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
             _publisher = publisher;
             _messageProcess = messageProcess;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                if(!_messageProcess.IsAvailableRequestPackeage())
+                try
                 {
-                    await Task.Delay(DELAY_FOR_NEW_RETRY, stoppingToken);
-                }
-
-                //se for um comando de escrita no banco, chamar uma função ou método de uma classe. Talvez utilizar um padrão de projeto
-            }
-
-                using (var scope = _scopeFactory.CreateScope())
-            {
-                var repository = scope.ServiceProvider.GetRequiredService<ICommandRepository>();
-
-                var commandStorageObject = new CommandStorageObject
-                {
-                    CommandName = "Comando 1",
-                    Id = 1,
-                    MeterUUID = "adfsdfsd",
-                    RxCommand = new byte[10],
-                    TxCommand = new byte[10],
-                };
-
-                await repository.AddAsync(commandStorageObject);
-                await repository.SaveChangesAsync();
-            }
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    var repository = scope.ServiceProvider.GetRequiredService<ICommandRepository>();
-                    var commands = await repository.GetAllAsync();
-
-                    foreach (var command in commands)
+                    if (!_messageProcess.IsAvailableRequestPackeage())
                     {
-                        _logger.LogInformation($"Command: {command.CommandName} | MeterUUID: {command.MeterUUID}");
+                        await Task.Delay(DELAY_FOR_NEW_RETRY, stoppingToken);
+                        continue;
+                    }
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var repository = scope.ServiceProvider.GetRequiredService<ICommandRepository>();
+
+                        var package = (StorageCommandObjectRequest)_messageProcess.GetLastRequestPackage();
+
+                        CommandStorageObject[] commands = package.CommandObjects;
+
+                        foreach (var command in commands)
+                            await repository.AddAsync(command);
+
+                        await repository.SaveChangesAsync();
+
+                        _messageProcess.ProcessLastRequestPackage();
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+                //se for um comando de escrita no banco, chamar uma função ou método de uma classe. Talvez utilizar um padrão de projeto
 
-                await Task.Delay(1000, stoppingToken);
+
+                
+                
+                
             }
+
+            
+
+            //while (!stoppingToken.IsCancellationRequested)
+            //{
+            //    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+
+            //    using (var scope = _scopeFactory.CreateScope())
+            //    {
+            //        var repository = scope.ServiceProvider.GetRequiredService<ICommandRepository>();
+            //        var commands = await repository.GetAllAsync();
+
+            //        foreach (var command in commands)
+            //        {
+            //            _logger.LogInformation($"Command: {command.CommandName} | MeterUUID: {command.MeterUUID}");
+            //        }
+            //    }
+
+            //    await Task.Delay(1000, stoppingToken);
+            //}
         }
     }
 }

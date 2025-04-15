@@ -1,4 +1,5 @@
 using Meter.Farm.DTO;
+using Meter.Farm.DTO.Repository;
 
 namespace Storage.Layer.Service.Interfaces
 {
@@ -7,8 +8,8 @@ namespace Storage.Layer.Service.Interfaces
         public bool IsAvailableRequestPackeage();
         public object GetLastRequestPackage();
         public void ProcessLastRequestPackage();
-        public void AddRequestPackage(ServerPackageObject message);
-        public IList<ServerPackageObject> GetRequestPackageList();
+        public void AddRequestPackage(StorageCommandObjectRequest message);
+        public IList<StorageCommandObjectRequest> GetRequestPackageList();
         public void ClearRequestBuffer();
 
     }

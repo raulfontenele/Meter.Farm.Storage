@@ -6,6 +6,7 @@ using System.Net;
 using Meter.Farm.DTO;
 using Storage.Layer.Service.Interfaces;
 using Storage.Layer.Service.Domain;
+using Meter.Farm.DTO.Repository;
 
 namespace Storage.Layer.Service.Services
 {
@@ -26,7 +27,7 @@ namespace Storage.Layer.Service.Services
             _messageProcess = messageProcess;
 
             _hostName = configuration["RabbitMQ:HostName"] ?? "localhost";
-            _queueName = configuration["RabbitMQ:QueueResponse"] ?? "";
+            _queueName = configuration["RabbitMQ:QueueRequest"] ?? "";
 
             while (true)
             {
@@ -63,7 +64,7 @@ namespace Storage.Layer.Service.Services
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                var data = JsonConvert.DeserializeObject<ServerPackageObject>(message);
+                var data = JsonConvert.DeserializeObject<StorageCommandObjectRequest>(message);
 
                 _logger.LogDebug("[RABBITMQ] Mensagem recebida e evento disparado.");
 

@@ -21,6 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\meter-farm-commons\Meter.Farm.DTO\Meter.Farm.DTO.csproj" />
+    <ProjectReference Include="..\..\..\meter-farm-commons\Meter.Farm.DTO\Meter.Farm.DTO.csproj" />
   </ItemGroup>
 </Project>

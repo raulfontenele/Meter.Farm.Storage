@@ -4,11 +4,13 @@ using Storage.Layer.Service.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Storage.Layer.Service.Data;
 using Storage.Layer.Service.Services;
+using Storage.Layer.Service.Domain;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         services.AddHostedService<Worker>();
+        services.AddSingleton<MessageProcess>();
 
         services.AddDbContext<MeterFarmDbContext>(options =>
             options.UseMySql(
